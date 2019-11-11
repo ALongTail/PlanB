@@ -1,0 +1,297 @@
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <iomanip>
+#include <string>
+#include <cstdio>
+#include <sstream>
+using namespace std;
+int go[][2] = { 0, 1, 0, -1, 1, 0, -1, 0, 1, 1, 1, -1, -1, 1, -1, -1 };
+
+//方向数组点
+class point {
+
+public:
+
+	bool f;
+
+	int round;
+
+	bool visited;
+
+	string c;
+
+	void init()
+
+	{
+
+		f = 0;
+
+		c = "#";
+
+		round = 0;
+
+		visited = 0;
+
+	}
+
+};
+//错误
+class E {
+
+public:
+
+	E() {}
+
+	void print()
+
+	{
+
+		cout << "输入有误" << endl;
+
+	}
+
+};
+//地图
+class map
+
+{
+
+public:
+
+	int n, m, cnt, done, vi;
+
+	point** p;
+
+	bool judge(int x, int y)//越界判断
+	{
+
+		if (x >= 0 &&
+
+			x < n &&
+
+			y >= 0 &&
+
+			y < m)return 1;
+
+		return 0;
+
+	}
+
+	void show()//显示地图
+	{
+
+		system("cls");
+		for (int i = 0; i < n; i++)
+
+		{
+
+			for (int j = 0; j < m; j++)
+
+			{
+
+				cout << setw(2) << p[i][j].c;
+
+			}
+			cout << setw(3) << i + 1 << endl;
+
+		}
+
+		cout << endl;
+
+		for (int j = 0; j < m; j++)
+
+			cout << setw(2) << j + 1;
+
+		cout << endl;
+
+	}
+
+	int click(int x, int y)//点击
+	{
+
+		if (p[x][y].f)return -1;
+
+		if (p[x][y].visited)return 0;
+
+		p[x][y].visited = 1;
+
+		done++;
+		stringstream ss;
+
+		ss << p[x][y].round;
+		p[x][y].c = ss.str();
+
+		if (done + cnt >= m * n) { vi = 1; return 1; }
+
+		if (p[x][y].round)return 0;
+
+		for (int i = 0; i < 8; i++)
+		{
+
+			if (judge(x + go[i][0], y + go[i][1]))
+
+			{
+
+				click(x + go[i][0], y + go[i][1]);
+
+			}
+
+		}
+
+		return 0;
+	}
+
+	void showend()//结束，雷显示
+	{
+
+		for (int i = 0; i < n; i++)
+
+			for (int j = 0; j < m; j++)
+
+			{
+
+				if (p[i][j].f)
+
+					p[i][j].c = "@";
+
+			}
+
+		show();
+
+	}
+
+	map()//构造地图
+	{
+
+		done = 0; vi = 0;
+
+		cout << "请输入扫雷地图大小:" << endl;
+
+		cin >> n >> m;
+
+		cout << "请输入地图雷数:" << endl;
+
+		cin >> cnt;
+
+		if (cnt > n* m)
+
+		{
+
+			E e;
+
+			throw(e);
+
+		}
+
+		p = new point * [n];
+
+		for (int i = 0; i < n; i++)
+
+			p[i] = new point[m];
+
+		for (int i = 0; i < n; i++)
+
+			for (int j = 0; j < m; j++)
+
+			{
+
+				p[i][j].init();
+
+			}
+		for (int i = 0; i < cnt; i++)
+
+		{
+
+			int x = rand() % n;
+
+			int y = rand() % m;
+
+			if (p[x][y].f)
+
+			{
+
+				i--;
+			}
+
+			p[x][y].f = 1;
+
+		}
+
+		for (int i = 0; i < n; i++)
+
+			for (int j = 0; j < m; j++)
+			{
+
+				for (int k = 0; k < 8; k++)
+
+				{
+					if (judge(i + go[k][0], j + go[k][1]))
+
+					{
+
+						if (p[i + go[k][0]][j + go[k][1]].f)
+
+							p[i][j].round++;
+
+					}
+				}
+
+			}
+
+	}
+
+	~map()//析构
+	{
+
+		for (int i = 0; i < n; i++)
+
+			delete[] p[i];
+
+		delete p;
+
+	}
+
+};
+		
+int main()
+
+{
+	srand((unsigned)time(NULL));
+
+	try
+	{
+		map a;//游戏开始
+		while (1)
+		{
+			int n, m;
+			a.show();
+			cout << "Please enter the Row Number(1~" << a.n << "):";
+			cin >> n;
+			cout << "Please enter the Arrange Number(1~" << a.m << "):";
+			cin >> m;
+			switch (a.click(n - 1, m - 1))
+			{
+			case -1:
+				a.showend();
+				cout << "Oh,you have clicked the bomb!" << endl;
+				system("pause");
+				return 0;
+			default:
+				if (a.vi)
+				{
+					a.showend();
+					cout << "Good job, you win!" << endl;
+					system("pause");
+					return 0;
+				}
+				a.show();
+			}
+		}
+	}
+	catch (E & e)
+	{
+		e.print(); return 0;
+	}
+	return 0;
+}
