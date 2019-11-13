@@ -12,24 +12,17 @@ int map[N+2][N+2];			//存放雷  -1 表示雷
 int gamemodel;
 int win = N*N - 15;
 void StartWindow();		//开始界面
-void normalModel();     //10雷模式
-void BTmodel();			//99雷模式
+void normalModel();     //15雷模式 
 void DrawGraph();		//画图形
 int MouseClick();	    //鼠标点击事件
 void loadingPlay(int x,int y);	//运用递归实现点击一大片
 void  main() {
 	initgraph(N*M, N*M);
-	StartWindow();
-	if (gamemodel == 0) {
-		normalModel();
-	}
-	else {
-		BTmodel();
-	}
+	StartWindow(); 
 	closegraph();
 }
 void StartWindow() {
-	mciSendString(L"open ./风动草.mp3 alias bgm",0,0,0);
+	mciSendString(L"open ./背景音乐.mp3 alias bgm",0,0,0);
 	mciSendString(L"play bgm repeat", 0, 0, 0);
 	loadimage(&image[0], L"./image/blank.jpg",M,M);
 	loadimage(&image[1], L"./image/1.jpg", M, M);
@@ -40,45 +33,35 @@ void StartWindow() {
 	loadimage(&image[6], L"./image/6.jpg", M, M);
 	loadimage(&image[7], L"./image/7.jpg", M, M);
 	loadimage(&image[8], L"./image/8.jpg", M, M);
-	loadimage(&image[9], L"./image/lei.jpg", M, M);
+	loadimage(&image[9], L"./image/mine.jpg", M, M);
 	loadimage(&image[10], L"./image/tag.jpg", M, M);
 	loadimage(&image[11], L"./image/start.jpg", N*M, N*M);
 	loadimage(&image[12], L"./image/0.jpg", M, M);
 	putimage(0, 0, &image[11]);
-	MOUSEMSG msg = { 0 };
-	setbkmode(TRANSPARENT);		 //设置背景 透明风格
-	settextstyle(40, 18, L"楷体");
+	MOUSEMSG msg = { 0 }; 
+	settextstyle(40, 20, L"微软雅黑");
 	while (1) {
 		msg = GetMouseMsg();
-		if (msg.x > 180 && msg.x < 320 && msg.y >250 && msg.y < 290){
+		if (msg.x > 200 && msg.x < 340 && msg.y >330 && msg.y < 370) {
+			settextcolor(RGB(255, 255, 255));		//设置字体颜色
+			outtextxy(200, 330, L"开始");
+		} 
+		else if (msg.x > 200 && msg.x < 340 && msg.y >410 && msg.y < 450) {
 			settextcolor(RGB(255, 0, 0));		//设置字体颜色
-			outtextxy(180, 250, L"15雷模式");
-		}
-		else if (msg.x > 180 && msg.x < 320 && msg.y >330 && msg.y < 370) {
-			settextcolor(RGB(255, 0, 0));		//设置字体颜色
-			outtextxy(180, 330, L"99雷模式");
-		}
-		else if (msg.x > 180 && msg.x < 320 && msg.y >410 && msg.y < 450) {
-			settextcolor(RGB(255, 0, 0));		//设置字体颜色
-			outtextxy(180, 410, L"退出");
+			outtextxy(200, 410, L"退出");
 		}
 		else {
-			settextcolor(RGB(0, 0, 0));		//设置字体颜色
-			outtextxy(180, 250, L"15雷模式");
-			outtextxy(180, 330, L"99雷模式");
-			outtextxy(180, 410, L"退出");
+			settextcolor(RGB(0, 0, 0));             //设置字体颜色 
+                        outtextxy(200,330,L"开始");
+			outtextxy(200, 410, L"退出");
 		}
 		switch (msg.uMsg) {
 		case WM_LBUTTONDOWN:
-			if (msg.x > 180 && msg.x < 320 && msg.y >250 && msg.y < 290) {
-				gamemodel = 0;
+			if (msg.x > 200 && msg.x < 340 && msg.y >330 && msg.y < 370) {
+				normalModel();
 				return;
-			}
-			else if (msg.x > 180 && msg.x < 320 && msg.y >330 && msg.y < 370) {
-				gamemodel = 1;
-				return;
-			}
-			else if (msg.x > 180 && msg.x < 320 && msg.y >410 && msg.y < 450) {
+			} 
+			else if (msg.x > 200 && msg.x < 340 && msg.y >410 && msg.y < 450) {
 				exit(0);
 			}
 		}
@@ -131,49 +114,7 @@ void normalModel() {
 			}
 		}
 	}
-}
-void BTmodel() {
-	cleardevice();
-	int x, y,type;
-	HWND hWnd = GetHWnd();
-	srand((unsigned)time(NULL));
-	while (1) {
-		win = 1;
-		for (int i = 0; i < N + 2; i++) {
-			for (int j = 0; j < N + 2; j++) {
-				map[i][j] = -1;
-			}
-		}
-		x = rand() % 10 + 1;
-		y = rand() % 10 + 1;
-		map[x][y] = 0;
-		for (int i = 1; i <= N; i++) {	//扫描数组10X10显示部分
-			for (int j = 1; j <= N; j++) {
-				if (map[i][j] != -1) {
-					for (int m = i - 1; m <= i + 1; m++) {//扫描包含该数字的九个格子
-						for (int n = j - 1; n <= j + 1; n++) {
-							if (map[m][n] == -1) {
-								map[i][j]++;
-							}
-						}
-					}
-				}
-			}
-		}
-		while (1) {
-			DrawGraph();
-			type = MouseClick();
-			if (type == -1) {
-				DrawGraph();
-				if (MessageBox(hWnd, L"按下确定重玩", L"Lose", MB_OK) == IDOK) break;
-			}
-			if (win == 0) {
-				DrawGraph();
-				if (MessageBox(hWnd, L"按下确定重玩", L"Lose", MB_OK) == IDOK) break;
-			}
-		}
-	}
-}
+} 
 void DrawGraph() {
 	for (int i = 1; i <= N;i++) {
 		for (int j = 1; j <= N; j++) {
