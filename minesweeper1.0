@@ -9,10 +9,9 @@
 using namespace std;
 IMAGE image[13];		//存放图片
 int map[N+2][N+2];			//存放雷  -1 表示雷
-int gamemodel;
 int win = N*N - 15;
 void StartWindow();		//开始界面
-void normalModel();     //15雷模式 
+void gamebegin();     //15雷模式 
 void DrawGraph();		//画图形
 int MouseClick();	    //鼠标点击事件
 void loadingPlay(int x,int y);	//运用递归实现点击一大片
@@ -58,7 +57,7 @@ void StartWindow() {
 		switch (msg.uMsg) {
 		case WM_LBUTTONDOWN:
 			if (msg.x > 200 && msg.x < 340 && msg.y >330 && msg.y < 370) {
-				normalModel();
+				gamebegin();
 				return;
 			} 
 			else if (msg.x > 200 && msg.x < 340 && msg.y >410 && msg.y < 450) {
@@ -67,7 +66,7 @@ void StartWindow() {
 		}
 	}
 }
-void normalModel() {
+void gamebegin() {
 	while (1) {
 		cleardevice();
 		win = N*N - 15;
