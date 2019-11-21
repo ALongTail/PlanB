@@ -3,26 +3,29 @@
 #include<stdio.h>
 #include<graphics.h>			//图形库：使用2017以前的VS或用easyX软件补充安装
 #include<mmsystem.h>
+#include<conio.h>
 #pragma comment(lib,"winmm.lib")		//音频设备接口
-#define N 10  //格子数：待改，除此之外还有很多参数可以加入main函数中，以便编写另一模式
-#define M 50  //图片大小
 using namespace std;
 IMAGE image[13];		//存放图片
-int map[N + 2][N + 2];			//存放地图状况  -1 表示雷
+#define N 10  //格子数：待改，除此之外还有很多参数可以加入main函数中，以便编写另一模式
+#define M 50  //图片大小
+int map[N + 2][N + 2];			//存放地图状况  -1表示雷
 int win = N * N - 15;
-void StartWindow();		//开始界面：不知道为什么有两个黑坑
-void gamebegin();       //开始游戏
+void StartWindow();		//开始界面
+void gamebegin(int mine);       //开始游戏
 void DrawGraph();		//画图
 int MouseClick();	    //鼠标点击事件
+void modelchoose();
 void loadingPlay(int x, int y);	//运用递归实现点击一大片
-void main() {
-	initgraph(N * M, N * M);
+int main() {
+	initgraph(500, 500);
 	StartWindow();
 	closegraph();
 }
 void StartWindow() {
 	mciSendString(L"open ./背景音乐.mp3 alias bgm", 0, 0, 0);//不知道为什么要7s之后才开始播放
 	mciSendString(L"play bgm repeat", 0, 0, 0);
+	loadimage(&image[11], L"./image/start.jpg", 500, 500);
 	loadimage(&image[0], L"./image/blank.jpg", M, M);
 	loadimage(&image[1], L"./image/1.jpg", M, M);
 	loadimage(&image[2], L"./image/2.jpg", M, M);
@@ -34,7 +37,6 @@ void StartWindow() {
 	loadimage(&image[8], L"./image/8.jpg", M, M);
 	loadimage(&image[9], L"./image/mine.jpg", M, M);
 	loadimage(&image[10], L"./image/tag.jpg", M, M);
-	loadimage(&image[11], L"./image/start.jpg", N * M, N * M);
 	loadimage(&image[12], L"./image/0.jpg", M, M);
 	putimage(0, 0, &image[11]);
 	MOUSEMSG msg = { 0 };
@@ -57,19 +59,47 @@ void StartWindow() {
 		switch (msg.uMsg) {
 		case WM_LBUTTONDOWN:
 			if (msg.x > 200 && msg.x < 340 && msg.y >330 && msg.y < 370) {
-				gamebegin();
+				modelchoose();
 				return;
 			}
 			else if (msg.x > 200 && msg.x < 340 && msg.y >410 && msg.y < 450) {
 				exit(0);
 			}
-		}//此处应加另一模式 即自定义格数、雷数
+		}
 	}
 }
-void gamebegin() {
+void modelchoose() {
+	int Num_mine;
+	Num_mine = 0;
+	HWND hWnd = GetHWnd();
+	srand((unsigned)time(NULL));
+	if ((MessageBox(hWnd, L"请按下确定，然后由键盘输入模式\n(输入A进入15雷模式)\n(B进入20雷模式)\n(C进入50雷模式)", L"开始游戏", MB_OK) == IDOK))
+		;
+	while (1)
+	{
+		if (_kbhit()) {
+			Num_mine = _getch() - 47;
+			if (Num_mine == 1 || Num_mine == 50)
+			{
+				Num_mine = 15; gamebegin(Num_mine); break;
+			}
+			else if (Num_mine == 2 || Num_mine == 51)
+			{
+				Num_mine = 20; gamebegin(Num_mine); break;
+			}
+			else if (Num_mine == 3 || Num_mine == 52)
+			{
+				Num_mine = 30; gamebegin(Num_mine); break;
+			}
+			else
+				;
+		}
+	}
+}
+void gamebegin(int mine) {
 	while (1) {
 		cleardevice();
-		win = N * N - 15;
+		win = N * N - mine;
 		int type = 0;
 		HWND hWnd = GetHWnd();
 		int x, y, flag = 0;
@@ -79,7 +109,7 @@ void gamebegin() {
 				map[i][j] = 0;
 			}
 		}
-		while (flag < 15) {
+		while (flag < mine) {
 			x = rand() % 10 + 1;
 			y = rand() % 10 + 1;
 			if (map[x][y] != -1) {
@@ -105,11 +135,17 @@ void gamebegin() {
 			type = MouseClick();
 			if (type == -1) {
 				DrawGraph();
-				if (MessageBox(hWnd, L"按下确定重玩", L"Lose", MB_OK) == IDOK) break;
+				if (MessageBox(hWnd, L"按下确定重玩", L"游戏失败", MB_RETRYCANCEL) == IDRETRY)
+					break;
+				else
+					exit(0);
 			}
 			if (win == 0) {
 				DrawGraph();
-				if (MessageBox(hWnd, L"按下确定重玩", L"Win", MB_OK) == IDOK) break;
+				if (MessageBox(hWnd, L"按下确定重玩", L"胜利！", MB_RETRYCANCEL) == IDRETRY)
+					break;
+				else
+					exit(0);
 			}
 		}
 	}
